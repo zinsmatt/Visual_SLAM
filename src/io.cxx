@@ -26,6 +26,7 @@ Frame_provider::Frame_provider(const std::string &filename)
 cv::Mat Frame_provider::next_frame(int mode)
 {
   if (cur_index == frames.size() - 1) {
+    std::cerr << "End of frames" << std::endl;
     return cv::Mat();
   } else {
     return cv::imread(frames[++cur_index], mode);
