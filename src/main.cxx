@@ -14,8 +14,7 @@ int main()
 
   std::cout << "LOSC\n";
 
-  Frame_provider fp("/home/matthieu/dev/RGBD/data/rgbd_dataset_freiburg1_room/list_rgb_frames.txt");
-
+  Frame_provider fp("/home/matt/dev/RGBD/data/rgbd_dataset_freiburg1_room/list_rgb_frames.txt");
 
   cv::Ptr<cv::Feature2D> detector = cv::ORB::create();
   cv::Ptr<cv::BFMatcher> matcher =  cv::BFMatcher::create(cv::NORM_HAMMING, true);
