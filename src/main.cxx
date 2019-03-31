@@ -1,6 +1,7 @@
 #include <iostream>
 #include <Eigen/Dense>
 #include "io.h"
+#include "visualization.h"
 
 double dist(cv::Point2f const& a, cv::Point2f const& b)
 {
@@ -9,6 +10,12 @@ double dist(cv::Point2f const& a, cv::Point2f const& b)
 
 int main()
 {
+
+  Visualization visu;
+  visu.render();
+
+  return 0;
+
 
   const double MAX_MATCH_KEYPOINT_DIST = 50.0;
 
