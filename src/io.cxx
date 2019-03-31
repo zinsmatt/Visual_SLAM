@@ -32,3 +32,26 @@ cv::Mat Frame_provider::next_frame(int mode)
     return cv::imread(frames[++cur_index], mode);
   }
 }
+
+void write_obj(const std::string &filename, const std::vector<Eigen::Vector3d> &points)
+{
+  std::ofstream file(filename);
+  for (Eigen::Vector3d const& p: points)
+  {
+    file << "v " << p.x() << " " << p.y() << " " << p.z() << "\n";
+  }
+  file.close();
+}
+
+void write_points_time_csv(const std::string &filename, const std::vector<Eigen::Vector3d> &points, std::vector<double> times)
+{
+  std::ofstream file(filename);
+  file << "X, Y, Z, time\n";
+  int i = 0;
+  for (Eigen::Vector3d const& p: points)
+  {
+    file << p.x() << ", " << p.y() << ", " << p.z() << ", " << times[i] << "\n";
+    ++i;
+  }
+  file.close();
+}

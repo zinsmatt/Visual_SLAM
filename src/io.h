@@ -2,7 +2,7 @@
 #define IO_H
 
 #include <opencv2/opencv.hpp>
-
+#include <Eigen/Dense>
 
 class Frame_provider
 {
@@ -17,5 +17,6 @@ private:
     int cur_index = -1;
 };
 
-
+void write_obj(std::string const& filename, std::vector<Eigen::Vector3d> const& points);
+void write_points_time_csv(std::string const& filename, std::vector<Eigen::Vector3d> const& points, std::vector<double> times);
 #endif // IO_H

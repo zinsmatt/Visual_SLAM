@@ -1,5 +1,5 @@
 #include <iostream>
-
+#include <Eigen/Dense>
 #include "io.h"
 
 double dist(cv::Point2f const& a, cv::Point2f const& b)
@@ -19,8 +19,19 @@ int main()
   cv::Ptr<cv::Feature2D> detector = cv::ORB::create();
   cv::Ptr<cv::BFMatcher> matcher =  cv::BFMatcher::create(cv::NORM_HAMMING, true);
 
+  cv::Mat K(3, 3, CV_64F);
+  K.at<double>(0, 0) = 517.3; K.at<double>(0, 1) = 0.0; K.at<double>(0, 2) = 318.6;
+  K.at<double>(1, 0) = 0.0; K.at<double>(1, 1) = 516.5; K.at<double>(1, 2) = 255.3;
+  K.at<double>(2, 0) = 0.0; K.at<double>(2, 1) = 0.0; K.at<double>(2, 2) = 1.0;
+
+  std::vector<Eigen::Vector3d> positions;
+  std::vector<double> times;
+  positions.push_back(Eigen::Vector3d::Zero());
+  times.push_back(0.0);
+
   cv::Mat prev_desc;
   std::vector<cv::KeyPoint> prev_kp;
+  double time = 0.0;
   while (!fp.eof())
   {
     cv::Mat frame = fp.next_frame();
@@ -49,11 +60,20 @@ int main()
           pts.push_back(pt);
         }
       }
-      std::vector<unsigned char> fund_mat_mask;
-      cv::Mat F = cv::findFundamentalMat(prev_pts, pts, cv::FM_RANSAC, 3.0, 0.99, fund_mat_mask);
+      std::vector<unsigned char> essential_matrix_mask;
+      cv::Mat E = cv::findEssentialMat(prev_pts, pts, K, cv::RANSAC, 0.999, 1.0, essential_matrix_mask);
+//      std::vector<unsigned char> fund_mat_mask;
+//      cv::Mat F = cv::findFundamentalMat(prev_pts, pts, cv::FM_RANSAC, 3.0, 0.99, fund_mat_mask);
+      cv::Mat R, t;
+      cv::Mat chierality_mask;
+      cv::recoverPose(E, prev_pts, pts, K, R, t, chierality_mask);
+      Eigen::Vector3d prev_pos = positions.back();
+      Eigen::Vector3d translation(t.at<double>(0, 0), t.at<double>(0, 1), t.at<double>(0, 2));
+      positions.push_back(prev_pos + translation);
+      times.push_back(time);
       for (int i = 0; i < prev_pts.size(); ++i)
       {
-        if (fund_mat_mask[i] == 1)
+        if (essential_matrix_mask[i] == 1)
         {
           cv::line(frame, prev_pts[i], pts[i], cv::Scalar(255, 0, 0));
         }
@@ -61,12 +81,17 @@ int main()
     }
 
     cv::drawKeypoints(frame, keypoints, frame, cv::Scalar(0, 255, 0));
-    cv::namedWindow("win", cv::WINDOW_NORMAL);
+    cv::namedWindow("win");
     cv::imshow("win", frame);
-    cv::waitKey(100);
+    cv::waitKey(20);
 
     prev_desc = desc;
     prev_kp = keypoints;
+    time += 1.0;
   }
+
+
+  write_points_time_csv("trajectory.csv", positions, times);
+  write_obj("trajectory.obj", positions);
   return 0;
 }
