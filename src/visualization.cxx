@@ -7,8 +7,8 @@ Visualization::Visualization(unsigned int w, unsigned int h)
   glEnable(GL_DEPTH_TEST);
 
   s_cam = pangolin::OpenGlRenderState (
-        pangolin::ProjectionMatrix(w, h, 420, 420, w/2, h/2, 0.1, 100),
-        pangolin::ModelViewLookAt(2, 2, 2, 0, 0, 0, pangolin::AxisY));
+        pangolin::ProjectionMatrix(w, h, fu, fv, w/2, h/2, near, far),
+        pangolin::ModelViewLookAt(2, 2, 2, 0, 0, 0, pangolin::AxisZ));
 
 
 }
@@ -20,17 +20,28 @@ void Visualization::render()
       .SetBounds(0, 1.0, 0, 1.0, -640.0f/480.0f)
       .SetHandler(&handler);
 
-  Eigen::Matrix3d K;
-  K << 517.3, 0.0, 318.6, 0.0, 516.5, 255.3, 0.0, 0.0, 1.0;
-  Eigen::Matrix3d K_inv = K.inverse();
+
   while (!pangolin::ShouldQuit())
   {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     d_cam.Activate(s_cam);
 
-    pangolin::glDrawFrustum(K_inv, 1, 1, 1.0);
 
+    for (int c = 0; c < cameras.size(); ++c)
+    {
+      pangolin::glDrawFrustum<double>(cameras[c], cameras_scale, cameras_scale, cameras_transform[c], 1.0);
+    }
+    pangolin::glDrawAxis(axis_size);
+//  pangolin::glDraw_x0(10, 5);
+//  pangolin::glDraw_y0(10, 5);
+//  pangolin::glDraw_z0(10, 5);
 
     pangolin::FinishFrame();
   }
+}
+
+void Visualization::add_camera(const Eigen::Matrix3d &Kinv, const Eigen::Matrix4d &T)
+{
+  cameras.push_back(Kinv);
+  cameras_transform.push_back(T);
 }
