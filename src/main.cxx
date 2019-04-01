@@ -12,9 +12,17 @@ int main()
 {
 
   Visualization visu;
-  visu.render();
+  Eigen::Matrix3d Kk, Kkinv;
+  Kk << 517.3, 0.0, 318.6, 0.0, 516.5, 255.3, 0.0, 0.0, 1.0;
+  Kkinv = Kk.inverse();
 
-  return 0;
+  Eigen::Matrix3d current_rot = Eigen::Matrix3d::Identity();
+  Eigen::Vector3d current_pos = Eigen::Vector3d::Zero();
+  Eigen::Matrix4d temp;
+  temp << current_rot, current_pos, 0, 0, 0, 1;
+  visu.add_camera(Kkinv, temp);
+
+//  return 0;
 
 
   const double MAX_MATCH_KEYPOINT_DIST = 50.0;
@@ -76,8 +84,15 @@ int main()
       cv::recoverPose(E, prev_pts, pts, K, R, t, chierality_mask);
       Eigen::Vector3d prev_pos = positions.back();
       Eigen::Vector3d translation(t.at<double>(0, 0), t.at<double>(0, 1), t.at<double>(0, 2));
+      Eigen::Matrix3d rotation;
+      rotation << R.at<double>(0, 0), R.at<double>(0, 1), R.at<double>(0, 2), R.at<double>(1, 0), R.at<double>(1, 1), R.at<double>(1, 2),
+                  R.at<double>(2, 0), R.at<double>(2, 1), R.at<double>(2, 2);
       positions.push_back(prev_pos + translation);
       times.push_back(time);
+
+      temp << rotation * current_rot,  current_pos + translation, 0, 0, 0, 1;
+      visu.add_camera(Kkinv, temp);
+
       for (int i = 0; i < prev_pts.size(); ++i)
       {
         if (essential_matrix_mask[i] == 1)
@@ -100,5 +115,9 @@ int main()
 
   write_points_time_csv("trajectory.csv", positions, times);
   write_obj("trajectory.obj", positions);
+
+
+  visu.render();
+
   return 0;
 }
