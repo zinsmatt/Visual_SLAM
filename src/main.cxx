@@ -1,4 +1,6 @@
 #include <iostream>
+#include <thread>
+
 #include <Eigen/Dense>
 #include "io.h"
 #include "visualization.h"
@@ -8,10 +10,13 @@ double dist(cv::Point2f const& a, cv::Point2f const& b)
   return std::sqrt(std::pow(a.x - b.x, 2) + std::pow(a.y - b.y, 2));
 }
 
+
 int main()
 {
+  Visualization& visu = Visualization::get_instance();
+  std::thread render_loop;
+  render_loop = std::thread(Visualization::render);
 
-  Visualization visu;
   Eigen::Matrix3d Kk, Kkinv;
   Kk << 517.3, 0.0, 318.6, 0.0, 516.5, 255.3, 0.0, 0.0, 1.0;
   Kkinv = Kk.inverse();
@@ -116,8 +121,7 @@ int main()
   write_points_time_csv("trajectory.csv", positions, times);
   write_obj("trajectory.obj", positions);
 
-
-  visu.render();
+  render_loop.join();
 
   return 0;
 }

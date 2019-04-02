@@ -4,12 +4,28 @@
 #include <pangolin/pangolin.h>
 #include <Eigen/Dense>
 
+#include <memory>
+
+
 class Visualization
 {
 
+private:
+  static std::unique_ptr<Visualization> instance;
+
+  Visualization(const Visualization&) =delete;
+  void operator =(const Visualization&) =delete;
+
 public:
   Visualization(unsigned int w=640, unsigned int h=480);
-  void render();
+
+  static Visualization& get_instance() {
+    if (!instance)
+      instance = std::make_unique<Visualization>();
+    return *instance;
+  }
+
+  static void render();
 
   /// Add a camera to the list of cameras that are rendered
   /// The matrix passed is the K inv of the camera
